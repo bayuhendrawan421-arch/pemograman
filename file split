@@ -1,0 +1,76 @@
+import java.io.*;
+import java.util.*;
+
+public class FileSplitter {
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        // Input nama file
+        System.out.print("Masukkan nama file teks (contoh: input.txt): ");
+        String fileName = scanner.nextLine();
+
+        File inputFile = new File(fileName);
+        if (!inputFile.exists()) {
+            System.out.println("Error: File tidak ditemukan!");
+            scanner.close();
+            return;
+        }
+
+        // Input jumlah baris per bagian
+        System.out.print("Masukkan jumlah baris per bagian: ");
+        int linesPerPart = scanner.nextInt();
+        scanner.nextLine();
+
+        if (linesPerPart <= 0) {
+            System.out.println("Error: Jumlah baris harus lebih dari 0!");
+            scanner.close();
+            return;
+        }
+
+        // Input prefix nama file output
+        System.out.print("Masukkan nama prefix file output (contoh: hasil): ");
+        String outputPrefix = scanner.nextLine();
+
+        Queue<String> lineQueue = new LinkedList<>();
+        int totalLines = 0;
+
+        // Membaca file
+        try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                lineQueue.add(line);
+                totalLines++;
+            }
+        } catch (IOException e) {
+            System.out.println("Gagal membaca file: " + e.getMessage());
+            scanner.close();
+            return;
+        }
+
+        // Proses pemotongan file
+        int partNumber = 1;
+        while (!lineQueue.isEmpty()) {
+            String outputFileName = outputPrefix + "_part" + partNumber + ".txt";
+
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName))) {
+                for (int i = 0; i < linesPerPart && !lineQueue.isEmpty(); i++) {
+                    writer.write(lineQueue.poll());
+                    writer.newLine();
+                }
+                System.out.println("File berhasil dibuat: " + outputFileName);
+            } catch (IOException e) {
+                System.out.println("Gagal menulis file " + outputFileName + ": " + e.getMessage());
+            }
+
+            partNumber++;
+        }
+
+        System.out.println("\nRingkasan:");
+        System.out.println("Total baris dibaca : " + totalLines);
+        System.out.println("Total file dibuat  : " + (partNumber - 1));
+        System.out.println("Pemotongan file selesai.");
+
+        scanner.close();
+    }
+}
