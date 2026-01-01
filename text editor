@@ -1,0 +1,120 @@
+import java.util.Scanner;
+import java.util.Stack;
+
+class TextEditor {
+
+    private String text;
+    private Stack<String> undoStack;
+    private Stack<String> redoStack;
+    private static final int MAX_HISTORY = 10;
+
+    public TextEditor() {
+        this.text = "";
+        this.undoStack = new Stack<>();
+        this.redoStack = new Stack<>();
+    }
+
+    // Simpan state dengan batas maksimal
+    private void saveState() {
+        if (undoStack.size() >= MAX_HISTORY) {
+            undoStack.remove(0); // hapus state paling lama
+        }
+        undoStack.push(text);
+    }
+
+    public void write(String newText) {
+        saveState();
+        text += newText;
+        redoStack.clear();
+        System.out.println("Teks ditambahkan.");
+    }
+
+    public void delete(int count) {
+        if (count <= 0 || count > text.length()) {
+            System.out.println("Jumlah karakter tidak valid.");
+            return;
+        }
+        saveState();
+        text = text.substring(0, text.length() - count);
+        redoStack.clear();
+        System.out.println(count + " karakter dihapus.");
+    }
+
+    public void undo() {
+        if (!undoStack.isEmpty()) {
+            redoStack.push(text);
+            text = undoStack.pop();
+            System.out.println("Undo berhasil.");
+        } else {
+            System.out.println("Tidak ada aksi untuk undo.");
+        }
+    }
+
+    public void redo() {
+        if (!redoStack.isEmpty()) {
+            undoStack.push(text);
+            text = redoStack.pop();
+            System.out.println("Redo berhasil.");
+        } else {
+            System.out.println("Tidak ada aksi untuk redo.");
+        }
+    }
+
+    public void show() {
+        System.out.println("Teks saat ini   : \"" + text + "\"");
+        System.out.println("Panjang teks    : " + text.length() + " karakter");
+    }
+}
+
+public class Main {
+
+    public static void main(String[] args) {
+        TextEditor editor = new TextEditor();
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("=== Simulasi Text Editor (Versi Update) ===");
+        System.out.println("Perintah:");
+        System.out.println("write <teks>        -> menambahkan teks");
+        System.out.println("delete <jumlah>    -> menghapus karakter terakhir");
+        System.out.println("undo               -> membatalkan aksi");
+        System.out.println("redo               -> mengulangi aksi");
+        System.out.println("show               -> menampilkan teks");
+        System.out.println("exit               -> keluar");
+        System.out.println();
+
+        while (true) {
+            System.out.print("> ");
+            String input = scanner.nextLine().trim();
+
+            if (input.startsWith("write ")) {
+                editor.write(input.substring(6));
+
+            } else if (input.startsWith("delete ")) {
+                try {
+                    int count = Integer.parseInt(input.substring(7));
+                    editor.delete(count);
+                } catch (NumberFormatException e) {
+                    System.out.println("Masukkan angka yang valid.");
+                }
+
+            } else if (input.equals("undo")) {
+                editor.undo();
+
+            } else if (input.equals("redo")) {
+                editor.redo();
+
+            } else if (input.equals("show")) {
+                editor.show();
+
+            } else if (input.equals("exit")) {
+                System.out.println("Program selesai.");
+                break;
+
+            } else {
+                System.out.println("Perintah tidak dikenali.");
+            }
+        }
+
+        scanner.close();
+    }
+}
